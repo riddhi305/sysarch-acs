@@ -101,6 +101,10 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
   TimerTable->header.el2_timer_gsiv    = gGtdtHdr->NonSecurePL2TimerGSIV;
   TimerTable->header.virtual_timer_flag = gGtdtHdr->VirtualTimerFlags;
   TimerTable->header.virtual_timer_gsiv = gGtdtHdr->VirtualTimerGSIV;
+  TimerTable->header.s_el2_timer_flag = 0;
+  TimerTable->header.s_el2_timer_gsiv = 0;
+  TimerTable->header.s_el2_virt_timer_flag = 0;
+  TimerTable->header.s_el2_virt_timer_gsiv = 0;
 
   /* If table Rev is  0x01 it will have above information only */
   if (revision < 2)

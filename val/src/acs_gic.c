@@ -617,3 +617,20 @@ void val_gic_set_intr_trigger(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e trigger_
 
    val_mmio_write(val_get_gicd_base() + GICD_ICFGR + (4 * reg_offset), reg_value);
 }
+
+uint64_t val_el3_get_scr(uint64_t *out_scr)
+{
+    uint64_t r1=0;
+    uint64_t st = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_GET_SCR_EL3,
+                               0, 0, 0, &r1, 0, 0);
+    if (st) return 1;
+    if (out_scr) *out_scr = r1;
+    return 0;
+}
+
+uint64_t val_el3_update_scr(uint64_t set_bits, uint64_t clear_bits)
+{
+    uint64_t st = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_SET_SCR_EL3,
+                               set_bits, clear_bits, 0, 0, 0, 0);
+    return (st == 0) ? 0 : 1;
+}
