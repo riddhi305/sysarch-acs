@@ -33,6 +33,8 @@ TIMER_INFO_TABLE  *g_timer_info_table;
   @return  64-bit data pertaining to the requested input type
 **/
 
+extern int32_t gPsciConduit;
+
 uint64_t
 val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance)
 {
@@ -87,6 +89,18 @@ val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance)
           return g_timer_info_table->header.el2_timer_flag;
       case TIMER_INFO_SYS_TIMER_STATUS:
           return g_timer_info_table->header.sys_timer_status;
+      case TIMER_INFO_SEC_PHY_EL1_INTID:
+          return g_timer_info_table->header.s_el1_timer_gsiv;
+      case TIMER_INFO_SEC_PHY_EL1_FLAGS:
+          return g_timer_info_table->header.s_el1_timer_flag;
+      case TIMER_INFO_SEC_PHY_EL2_INTID:
+          return g_timer_info_table->header.s_el2_timer_gsiv;
+      case TIMER_INFO_SEC_PHY_EL2_FLAGS:
+          return g_timer_info_table->header.s_el2_timer_flag;
+      case TIMER_INFO_SEC_VIR_EL2_INTID:
+          return g_timer_info_table->header.s_el2_virt_timer_gsiv;
+      case TIMER_INFO_SEC_VIR_EL2_FLAGS:
+          return g_timer_info_table->header.s_el2_virt_timer_flag;
     default:
       return 0;
   }
@@ -433,4 +447,59 @@ val_timer_skip_if_cntbase_access_not_allowed(uint64_t index)
   else
       return ACS_STATUS_SKIP;
 
+}
+
+uint64_t val_smc_call(uint64_t fid, uint64_t service,
+                      uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                      uint64_t *ret1, uint64_t *ret2, uint64_t *ret3)
+{
+    ARM_SMC_ARGS a = {0};
+
+    a.Arg0 = fid;       /* Arg0: FID (ARM_VEN_EL3_ACS_SMC_HANDLER), 0xC7000030 */
+    a.Arg1 = service;   /* Arg1: services */
+    a.Arg2 = arg0;      /* Arg2..Arg4: args */
+    a.Arg3 = arg1;
+    a.Arg4 = arg2;
+
+    /* Force SMC conduit */
+    pal_pe_call_smc(&a, CONDUIT_SMC);
+
+    if (ret1) *ret1 = a.Arg1;
+    if (ret2) *ret2 = a.Arg2;
+    if (ret3) *ret3 = a.Arg3;
+    return a.Arg0;  /* status */
+}
+
+uint64_t val_el3_read_cntid(uint64_t cntctl_base, uint32_t *out_cntid)
+{
+    uint64_t r1=0;
+    uint64_t st = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_READ_CNTID,
+                               cntctl_base, 0, 0, &r1, 0, 0);
+    if (st) return 1;
+    if (out_cntid) *out_cntid = (uint32_t)r1;
+    return 0;
+}
+
+uint64_t val_el3_read_cntpct(uint64_t *out_cntpct)
+{
+    uint64_t r1 = 0;
+    uint64_t st = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_READ_CNTPCT,
+                               0, 0, 0, &r1, 0, 0);
+    if (st) return 1;
+    if (out_cntpct) *out_cntpct = r1;
+    return 0;
+}
+
+uint64_t val_el3_cntps_program(uint64_t delta_ticks)
+{
+    uint64_t st = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_CNTPS_PROGRAM,
+                               delta_ticks, 0, 0, 0, 0, 0);
+    return (st == 0) ? 0 : 1;
+}
+
+uint64_t val_el3_cntps_disable(void)
+{
+    uint64_t st = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_CNTPS_DISABLE,
+                                0, 0, 0, 0, 0, 0);
+    return (st == 0) ? 0 : 1;
 }

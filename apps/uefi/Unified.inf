@@ -66,6 +66,9 @@
   ../../test_pool/gic/g009.c
   ../../test_pool/gic/g010.c
   ../../test_pool/gic/g011.c
+  ../../test_pool/gic/g01_entry.c
+  ../../test_pool/gic/g02_entry.c
+  ../../test_pool/gic/g03_entry.c
   ../../test_pool/gic/v2m001.c
   ../../test_pool/gic/v2m002.c
   ../../test_pool/gic/v2m003.c
@@ -80,6 +83,8 @@
   ../../test_pool/timer/t003.c
   ../../test_pool/timer/t004.c
   ../../test_pool/timer/t005.c
+  ../../test_pool/timer/t01_entry.c
+  ../../test_pool/timer/t02_entry.c
   ../../test_pool/watchdog/w001.c
   ../../test_pool/watchdog/w002.c
   ../../test_pool/peripherals/d001.c
@@ -99,6 +104,7 @@
   ../../test_pool/smmu/i005.c
   ../../test_pool/smmu/i006.c
   ../../test_pool/smmu/i007.c
+  ../../test_pool/smmu/s01_entry.c
   ../../test_pool/pcie/p001.c
   ../../test_pool/pcie/p002.c
   ../../test_pool/pcie/p003.c

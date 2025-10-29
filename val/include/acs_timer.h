@@ -38,6 +38,10 @@
 #define CNTP_TVAL        0x28
 #define CNTP_CTL         0x2C
 #define COUNTER_ID       0xFD0
+#define CNTID_OFFSET     0x1C
+#define CNTCR_OFFSET     0x000       /* Control register */
+#define CNTCR_EN         (1u << 0)   /* Enable system counter */
+#define CNTCR_HDBG       (1u << 1)   /* Halt on debug */
 
 uint32_t t001_entry(uint32_t num_pe);
 uint32_t t002_entry(uint32_t num_pe);
@@ -46,4 +50,6 @@ uint32_t t004_entry(uint32_t num_pe);
 uint32_t t005_entry(uint32_t num_pe);
 uint32_t t006_entry(uint32_t num_pe);
 uint32_t t007_entry(uint32_t num_pe);
+uint32_t t01_entry(uint32_t num_pe);
+uint32_t t02_entry(uint32_t num_pe);
 #endif // __ACS_TIMER_H__

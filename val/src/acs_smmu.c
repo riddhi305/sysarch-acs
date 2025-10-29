@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+#include <Library/BaseMemoryLib.h>
 
 #include "include/acs_val.h"
 #include "include/acs_common.h"
 #include "include/acs_smmu.h"
 #include "include/acs_iovirt.h"
+#include "include/val_interface.h"
 
 /**
   @brief  This API reads 32-bit data from a register of an SMMU controller
@@ -202,4 +204,49 @@ val_smmu_pa2iova(uint32_t smmu_index, uint64_t pa)
 
   smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, smmu_index);
   return pal_smmu_pa2iova(smmu_base, pa);
+}
+
+void 
+el3_smmu_clear_map(void)
+{
+  (void)val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_SMMU_CLEAR_MAP, 0, 0, 0, NULL, NULL, NULL);
+}
+
+void 
+el3_smmu_add_entry(uint64_t ns_base, uint64_t s_base)
+{
+  (void)val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_SMMU_ADD_ENTRY, ns_base, s_base, 0, NULL, NULL, NULL);
+}
+
+void 
+pal_register_smmu_map_from_iort(void)
+{
+  IOVIRT_INFO_TABLE t;
+  ZeroMem(&t, sizeof(t));
+
+  pal_iovirt_create_info_table(&t);
+
+  /* Tells EL3 to reset its SMMU map */
+  el3_smmu_clear_map();
+
+  IOVIRT_BLOCK *b = &t.blocks[0];
+  for (UINT32 i = 0; i < t.num_blocks; i++, b = IOVIRT_NEXT_BLOCK(b)) {
+    if (b->type == IOVIRT_NODE_SMMU || b->type == IOVIRT_NODE_SMMU_V3) {
+      uint64_t ns_base = b->data.smmu.base;  
+      uint64_t s_base  = 0;              
+      el3_smmu_add_entry(ns_base, s_base);
+    }
+  }
+}
+
+uint64_t 
+val_el3_smmu_read_bank(uint32_t smmu_idx, uint32_t reg_off, uint32_t bank, uint64_t *out_val)
+{
+    uint64_t packed = ((uint64_t)smmu_idx << 32) | (uint64_t)reg_off;
+    uint64_t r1 = 0;
+    uint64_t st = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SVC_SMMU_READ,
+                               packed, bank, 0, &r1, 0, 0);
+    if (st) return 1;
+    if (out_val) *out_val = r1; 
+    return 0;
 }

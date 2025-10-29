@@ -231,8 +231,11 @@ val_bsa_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           }
 
           status |= g005_entry(num_pe);
-          if (!g_el1physkip)
+          if (!g_el1physkip) {
               status |= g006_entry(num_pe);
+              status |= g01_entry(num_pe);
+              status |= g02_entry(num_pe);
+          }
 
           status |= g007_entry(num_pe);
       }
@@ -245,6 +248,7 @@ val_bsa_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
       status |= g009_entry(num_pe);
       status |= g010_entry(num_pe);
       status |= g011_entry(num_pe);
+      status |= g03_entry(num_pe);
       }
   }
 
@@ -345,6 +349,8 @@ val_bsa_timer_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           status |= t004_entry(num_pe);
           status |= t005_entry(num_pe);
           status |= t007_entry(num_pe);
+          status |= t01_entry(num_pe);
+          status |= t02_entry(num_pe);
       }
   }
 
@@ -799,6 +805,7 @@ val_bsa_smmu_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           if (ver_smmu == 2)
               status |= i006_entry(num_pe);
           status |= i007_entry(num_pe);
+          status |= s01_entry(num_pe);
       }
   }
 

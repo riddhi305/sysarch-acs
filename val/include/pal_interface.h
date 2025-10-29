@@ -326,6 +326,10 @@ typedef struct {
   uint32_t num_platform_timer;
   uint32_t num_watchdog;
   uint32_t sys_timer_status;
+  uint32_t s_el2_timer_flag; /* CNTHPS_* flags */
+  uint32_t s_el2_timer_gsiv; /* CNTHPS_* PPI */
+  uint32_t s_el2_virt_timer_flag; /* CNTHVS_* flags */
+  uint32_t s_el2_virt_timer_gsiv; /* CNTHVS_* PPI */
 }TIMER_INFO_HDR;
 
 #define TIMER_TYPE_SYS_TIMER 0x2001

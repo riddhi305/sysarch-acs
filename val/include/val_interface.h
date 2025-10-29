@@ -22,6 +22,23 @@
 #include "acs_drtm.h"
 #include "acs_pfdi.h"
 
+#define ARM_VEN_EL3_ACS_SMC_HANDLER  0xC7000030
+
+/* service selectors (x1) */
+typedef enum {
+    ACS_SVC_READ_CNTPCT = 0x01,
+    ACS_SVC_READ_CNTID,
+    ACS_SVC_CNTPS_PROGRAM,
+    ACS_SVC_CNTPS_DISABLE,
+    ACS_SVC_GET_SCR_EL3,
+    ACS_SVC_SET_SCR_EL3,
+    ACS_SVC_SMMU_CLEAR_MAP,
+    ACS_SVC_SMMU_ADD_ENTRY,
+    ACS_SVC_SMMU_READ,
+} acs_service_t;
+
+#define PACK_IDX_OFF(idx, off)   ((((uint64_t)(idx))<<32) | ((uint64_t)(off)&0xffffffffull))
+
 /* set G_PRINT_LEVEL to one of the below values in your application entry
   to control the verbosity of the prints */
 #define ACS_PRINT_ERR   5      /* Only Errors. use this to de-clutter the terminal and focus only on specifics */
@@ -75,6 +92,20 @@ void view_print_info(uint32_t view);
 uint32_t execute_tests(void);
 uint32_t val_strncmp(char8_t *str1, char8_t *str2, uint32_t len);
 uint64_t val_time_delay_ms(uint64_t time_ms);
+
+uint64_t val_smc_call(uint64_t fid, uint64_t svc,
+                      uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                      uint64_t *ret1, uint64_t *ret2, uint64_t *ret3);
+uint64_t val_el3_read_cntid(uint64_t cntctl_base, uint32_t *out_cntid);
+uint64_t val_el3_read_cntpct(uint64_t *out_cntpct);
+uint64_t val_el3_cntps_program(uint64_t delta_ticks);
+uint64_t val_el3_cntps_disable(void);
+uint64_t val_el3_get_scr(uint64_t *out_scr);
+uint64_t val_el3_update_scr(uint64_t set_bits, uint64_t clear_bits);
+void el3_smmu_clear_map(void);
+void el3_smmu_add_entry(uint64_t ns_base, uint64_t s_base);
+void pal_register_smmu_map_from_iort(void);
+uint64_t val_el3_smmu_read_bank(uint32_t smmu_idx, uint32_t reg_off, uint32_t bank, uint64_t *out_val);
 
 /* VAL PE APIs */
 typedef enum {
@@ -189,7 +220,13 @@ typedef enum {
   TIMER_INFO_SYS_CNT_BASE_N,
   TIMER_INFO_FRAME_NUM,
   TIMER_INFO_SYS_INTID,
-  TIMER_INFO_SYS_TIMER_STATUS
+  TIMER_INFO_SYS_TIMER_STATUS,
+  TIMER_INFO_SEC_PHY_EL1_INTID,
+  TIMER_INFO_SEC_PHY_EL1_FLAGS,
+  TIMER_INFO_SEC_PHY_EL2_INTID,
+  TIMER_INFO_SEC_PHY_EL2_FLAGS,
+  TIMER_INFO_SEC_VIR_EL2_INTID,
+  TIMER_INFO_SEC_VIR_EL2_FLAGS
 }TIMER_INFO_e;
 
 #define BSA_TIMER_FLAG_ALWAYS_ON 0x4
